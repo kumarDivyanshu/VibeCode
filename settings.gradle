@@ -1,1 +1,8 @@
 rootProject.name = 'vibecode'
+
+include 'modules:auth'
+include 'modules:gateway'
+include 'modules:interview'
+include 'modules:user'
+include 'modules:codes'
+include 'modules:submission'
