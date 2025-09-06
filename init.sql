@@ -290,6 +290,11 @@ ALTER TABLE users DROP COLUMN reg_no;
 ALTER TABLE `videcode`.`interviews`
 MODIFY COLUMN `scheduled_date` DATETIME NULL;
 
+USE VIDECODE;
+ALTER TABLE questions drop column round;
+ALTER TABLE questions drop column points;
+ALTER TABLE questions drop column is_active;
+
 -- Reset SQL modes and checks
 SET SQL_MODE=@OLD_SQL_MODE;
 SET FOREIGN_KEY_CHECKS=@OLD_FOREIGN_KEY_CHECKS;

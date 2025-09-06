@@ -56,6 +56,21 @@ public class GatewayConfig {
                                 .rewritePath("/interview/(?<path>.*)", "/interviews/${path}"))
                         .uri("http://localhost:8082"))
 
+                // Interview service routes - all protected
+                // Changed from /question/** to /questions/** to match your controller
+                .route("questions-service", r -> r.path("/questions/**")
+                        .filters(f -> f
+                                .filter(authenticationFilter.apply(new AuthenticationFilter.Config()))
+                                .filter(rateLimitFilter.apply(new RateLimitFilter.Config())))
+                        .uri("http://localhost:8083"))
+
+                // Testcases routes /questions/** to match your controller
+                .route("testcases-service", r -> r.path("/testcases/**")
+                        .filters(f -> f
+                                .filter(authenticationFilter.apply(new AuthenticationFilter.Config()))
+                                .filter(rateLimitFilter.apply(new RateLimitFilter.Config())))
+                        .uri("http://localhost:8083"))
+
                 // Health check routes - no authentication required
                 .route("auth-health", r -> r.path("/actuator/health")
                         .and().header("X-Service", "auth")
