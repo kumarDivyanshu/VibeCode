@@ -26,7 +26,9 @@ public class InterviewController {
 
     private final InterviewService interviewService;
 
-    @PostMapping("/")
+    // Changed from @PostMapping("/") to @PostMapping
+    // This will handle POST /interviews (without trailing slash)
+    @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     public InterviewResponse create(@AuthenticationPrincipal UserPrincipal principal,
                                     @RequestBody CreateInterviewRequest request) {
@@ -40,6 +42,7 @@ public class InterviewController {
         return interviewService.getById(principal.getId(), id);
     }
 
+    // This already works correctly - handles GET /interviews
     @GetMapping
     public Page<InterviewResponse> list(@AuthenticationPrincipal UserPrincipal principal,
                                         @RequestParam Optional<InterviewStatus> status,

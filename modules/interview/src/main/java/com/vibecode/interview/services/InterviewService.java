@@ -36,6 +36,8 @@ public class InterviewService {
                 .description(req.description())
                 .scheduledDate(req.scheduledDate())
                 .status(InterviewStatus.completed)
+                .createdAt(LocalDateTime.now())
+                .updatedAt(LocalDateTime.now())
                 .build();
         Interview saved = interviewRepository.save(interview);
         return toResponse(saved);

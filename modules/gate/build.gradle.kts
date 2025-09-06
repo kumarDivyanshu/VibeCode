@@ -1,19 +1,15 @@
 plugins {
     java
-    application
-    id("org.javamodularity.moduleplugin") version "1.8.12"
-    id("org.openjfx.javafxplugin") version "0.0.13"
-    id("org.beryx.jlink") version "2.25.0"
+    id("org.springframework.boot") version "3.3.5"
+    id("io.spring.dependency-management") version "1.1.7"
 }
 
 group = "com.vibecode"
-version = "1.0-SNAPSHOT"
+version = "0.0.1-SNAPSHOT"
 
 repositories {
     mavenCentral()
 }
-
-val junitVersion = "5.10.2"
 
 java {
     toolchain {
@@ -25,29 +21,35 @@ tasks.withType<JavaCompile> {
     options.encoding = "UTF-8"
 }
 
-application {
-    mainModule.set("com.vibecode.gate")
-    mainClass.set("com.vibecode.gate.HelloApplication")
-}
-
-javafx {
-    version = "21"
-    modules = listOf("javafx.controls", "javafx.fxml")
-}
+val springCloudVersion = "2023.0.3"
 
 dependencies {
-    testImplementation("org.junit.jupiter:junit-jupiter-api:${junitVersion}")
-    testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:${junitVersion}")
+    implementation("org.springframework.cloud:spring-cloud-starter-gateway")
+    implementation("org.springframework.boot:spring-boot-starter-webflux")
+    implementation("org.springframework.boot:spring-boot-starter-actuator")
+
+    // JWT for authentication validation
+    implementation("io.jsonwebtoken:jjwt-api:0.11.5")
+    runtimeOnly("io.jsonwebtoken:jjwt-impl:0.11.5")
+    runtimeOnly("io.jsonwebtoken:jjwt-jackson:0.11.5")
+
+    // Reactive programming support
+    implementation("io.projectreactor:reactor-core")
+
+    // Lombok for cleaner code
+    compileOnly("org.projectlombok:lombok")
+    annotationProcessor("org.projectlombok:lombok")
+
+    testImplementation("org.springframework.boot:spring-boot-starter-test")
+    testImplementation("io.projectreactor:reactor-test")
+}
+
+dependencyManagement {
+    imports {
+        mavenBom("org.springframework.cloud:spring-cloud-dependencies:${springCloudVersion}")
+    }
 }
 
 tasks.withType<Test> {
     useJUnitPlatform()
-}
-
-jlink {
-    imageZip.set(layout.buildDirectory.file("/distributions/app-${javafx.platform.classifier}.zip"))
-    options.set(listOf("--strip-debug", "--compress", "2", "--no-header-files", "--no-man-pages"))
-    launcher {
-        name = "app"
-    }
 }

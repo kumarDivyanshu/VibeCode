@@ -14,7 +14,7 @@ import java.util.function.Function;
 @Service
 public class JwtService {
 
-    @Value("${app.jwt.secret}")
+    @Value("${jwt.secret}")
     private String secret;
 
     public String extractUserId(String token) {
@@ -29,6 +29,11 @@ public class JwtService {
         final Claims claims = extractAllClaims(token);
         return claimsResolver.apply(claims);
     }
+    public String extractClaim(String token, String claimName) {
+        final Claims claims = extractAllClaims(token);
+        return claims.get(claimName, String.class);
+    }
+
 
     public boolean isTokenValid(String token) {
         return !isTokenExpired(token);
