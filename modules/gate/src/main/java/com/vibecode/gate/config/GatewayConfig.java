@@ -71,6 +71,17 @@ public class GatewayConfig {
                                 .filter(rateLimitFilter.apply(new RateLimitFilter.Config())))
                         .uri("http://localhost:8083"))
 
+                // Submission service routes
+                .route("submission-open", r -> r.path("/api/submissions/callback", "/api/submissions/runcode")
+                        .filters(f -> f
+                                .filter(rateLimitFilter.apply(new RateLimitFilter.Config())))
+                        .uri("http://localhost:8092"))
+                .route("submission-service", r -> r.path("/api/submissions/**")
+                        .filters(f -> f
+                                .filter(authenticationFilter.apply(new AuthenticationFilter.Config()))
+                                .filter(rateLimitFilter.apply(new RateLimitFilter.Config())))
+                        .uri("http://localhost:8092"))
+
                 // Health check routes - no authentication required
                 .route("auth-health", r -> r.path("/actuator/health")
                         .and().header("X-Service", "auth")
