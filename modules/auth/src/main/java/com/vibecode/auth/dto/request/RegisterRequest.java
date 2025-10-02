@@ -9,7 +9,11 @@ import lombok.Data;
 public class RegisterRequest {
     @NotBlank
     @Size(max = 255)
-    private String name;
+    private String firstName;
+
+    @NotBlank
+    @Size(max = 255)
+    private String lastName;
 
     @Email
     @NotBlank
