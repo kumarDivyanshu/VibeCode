@@ -32,7 +32,7 @@ public class AuthService {
                 .id(UUID.randomUUID().toString())
                 .email(request.getEmail().toLowerCase())
                 .password(passwordEncoder.encode(request.getPassword()))
-                .name(request.getName())
+                .name(request.getFirstName())
                 .banned(false)
                 .build();
         userRepository.save(user);

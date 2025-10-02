@@ -21,9 +21,10 @@ public class TestcaseController {
     @GetMapping("question/{questionId}")
     public List<TestcaseDtos.Response> list(@PathVariable String questionId,
                                             @RequestParam(defaultValue = "false") boolean includeHidden,
+                                            @RequestParam(defaultValue = "false") boolean internal,
                                             Authentication auth) {
-        boolean isAdmin = hasRole(auth, "ROLE_ADMIN") || hasRole(auth, "admin") || hasRole(auth, "ADMIN");
-        boolean allowHidden = isAdmin && includeHidden;
+        boolean isAdmin = hasRole(auth, "ROLE_ADMIN") || hasRole(auth, "admin") || hasRole(auth, "ADMIN") || internal;
+        boolean allowHidden = (isAdmin && includeHidden) || internal;
         return testcaseService.list(questionId, allowHidden).stream()
                 .map(tc -> map(tc, !isAdmin && Boolean.TRUE.equals(tc.getHidden())))
                 .collect(Collectors.toList());
@@ -88,4 +89,3 @@ public class TestcaseController {
         );
     }
 }
-
