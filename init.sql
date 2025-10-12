@@ -299,3 +299,60 @@ ALTER TABLE questions drop column is_active;
 SET SQL_MODE=@OLD_SQL_MODE;
 SET FOREIGN_KEY_CHECKS=@OLD_FOREIGN_KEY_CHECKS;
 SET UNIQUE_CHECKS=@OLD_UNIQUE_CHECKS;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `ai_chat_history`
+--
+
+CREATE TABLE `ai_chat_history` (
+  `chat_id` int(11) NOT NULL,
+  `session_id` int(11) NOT NULL,
+  `text` text NOT NULL,
+  `role` varchar(50) NOT NULL,
+  `datetime` datetime NOT NULL DEFAULT current_timestamp()
+);
+
+--
+-- Table structure for table `ai_chat_session`
+--
+
+CREATE TABLE `ai_chat_session` (
+  `session_id` int(11) NOT NULL,
+  `user_id` varchar(36) NOT NULL,
+  `question_id` varchar(36) NOT NULL
+);
+
+--
+-- Indexes for dumped tables
+--
+
+--
+-- Indexes for table `ai_chat_history`
+--
+ALTER TABLE `ai_chat_history`
+  ADD PRIMARY KEY (`chat_id`);
+
+--
+-- Indexes for table `ai_chat_session`
+--
+ALTER TABLE `ai_chat_session`
+  ADD PRIMARY KEY (`session_id`);
+
+--
+-- AUTO_INCREMENT for dumped tables
+--
+
+--
+-- AUTO_INCREMENT for table `ai_chat_history`
+--
+ALTER TABLE `ai_chat_history`
+  MODIFY `chat_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=1;
+
+--
+-- AUTO_INCREMENT for table `ai_chat_session`
+--
+ALTER TABLE `ai_chat_session`
+  MODIFY `session_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=1;
+COMMIT;

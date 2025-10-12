@@ -82,6 +82,13 @@ public class GatewayConfig {
                                 .filter(rateLimitFilter.apply(new RateLimitFilter.Config())))
                         .uri("http://localhost:8092"))
 
+                // AiHelper service routes - all protected
+                .route("aiHelper-service", r -> r.path("/ai/**")
+                        .filters(f -> f
+                                .filter(authenticationFilter.apply(new AuthenticationFilter.Config()))
+                                .filter(rateLimitFilter.apply(new RateLimitFilter.Config())))
+                        .uri("http://localhost:8090"))
+
                 // Health check routes - no authentication required
                 .route("auth-health", r -> r.path("/actuator/health")
                         .and().header("X-Service", "auth")
