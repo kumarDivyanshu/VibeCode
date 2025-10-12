@@ -1,10 +1,10 @@
-# VibeCode
+# Placify
 
-A comprehensive full-stack microservices application for coding interviews and assessments, built with Java Spring Boot and modern technologies. VibeCode provides a complete platform for conducting technical interviews, managing coding challenges, and evaluating submissions with AI assistance.
+A comprehensive full-stack microservices application for coding interviews and assessments, built with Java Spring Boot and modern technologies. Placify provides a complete platform for conducting technical interviews, managing coding challenges, and evaluating submissions with AI assistance.
 
 ## 🏗️ Architecture Overview
 
-VibeCode follows a microservices architecture with the following key components:
+Placify follows a microservices architecture with the following key components:
 
 - **API Gateway** (`gate`) - Central routing and authentication hub
 - **Authentication Service** (`auth`) - User management and security
@@ -16,7 +16,7 @@ VibeCode follows a microservices architecture with the following key components:
 ## 📁 Project Structure
 
 ```
-vibecode/
+Placify/
 ├── build.gradle                 # Root build configuration
 ├── settings.gradle             # Multi-module project settings
 ├── gradlew, gradlew.bat       # Gradle wrapper scripts
@@ -170,7 +170,7 @@ Key features:
 1. **Clone the Repository**:
    ```bash
    git clone <repository-url>
-   cd vibecode
+   cd Placify
    ```
 
 2. **Database Setup**:
@@ -219,7 +219,7 @@ Key features:
 ### Development Setup in IntelliJ IDEA
 
 1. **Import Project**:
-   - File → Open → Select `vibecode` directory
+   - File → Open → Select `Placify` directory
    - Choose "Import as Gradle Project"
    - Wait for project indexing to complete
 
@@ -236,8 +236,8 @@ Key features:
 ### Gateway Service (Dockerized)
 ```bash
 cd modules/gate
-docker build -t vibecode-gateway .
-docker run -p 8080:8080 vibecode-gateway
+docker build -t Placify-gateway .
+docker run -p 8080:8080 Placify-gateway
 ```
 
 ### Full Stack Deployment
@@ -342,7 +342,7 @@ cd modules/gate
 1. **Fork and Clone**:
    ```bash
    git clone <your-fork-url>
-   cd vibecode
+   cd Placify
    git checkout -b feature/your-feature-name
    ```
 
