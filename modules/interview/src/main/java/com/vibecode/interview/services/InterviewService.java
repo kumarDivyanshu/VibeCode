@@ -5,7 +5,11 @@ import com.vibecode.interview.dto.InterviewResponse;
 import com.vibecode.interview.dto.UpdateInterviewRequest;
 import com.vibecode.interview.models.Interview;
 import com.vibecode.interview.models.InterviewStatus;
+import com.vibecode.interview.models.Company; // NEW
+import com.vibecode.interview.models.User; // NEW
 import com.vibecode.interview.repositories.InterviewRepository;
+import com.vibecode.interview.repositories.CompanyRepository; // NEW
+import com.vibecode.interview.repositories.UserRepository; // NEW
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -26,9 +30,11 @@ import java.util.UUID;
 public class InterviewService {
 
     private final InterviewRepository interviewRepository;
+    private final CompanyRepository companyRepository; // CHANGED
+    private final UserRepository userRepository;       // NEW
 
     @Transactional
-    public InterviewResponse create(String userId, CreateInterviewRequest req) {
+    public InterviewResponse create(String userId, String userEmail, CreateInterviewRequest req) {
         Interview interview = Interview.builder()
                 .id(UUID.randomUUID().toString())
                 .userId(userId)
@@ -40,18 +46,19 @@ public class InterviewService {
                 .updatedAt(LocalDateTime.now())
                 .build();
         Interview saved = interviewRepository.save(interview);
-        return toResponse(saved);
+        return toResponse(saved, userEmail);
     }
 
     @Transactional(readOnly = true)
-    public InterviewResponse getById(String userId, String id) {
+    public InterviewResponse getById(String userId, String userEmail, String id) {
         Interview interview = interviewRepository.findByIdAndUserId(id, userId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Interview not found"));
-        return toResponse(interview);
+        return toResponse(interview, userEmail);
     }
 
     @Transactional(readOnly = true)
     public Page<InterviewResponse> list(String userId,
+                                        String userEmail,
                                         Optional<InterviewStatus> status,
                                         Optional<UUID> companyId,
                                         Optional<LocalDateTime> from,
@@ -65,7 +72,7 @@ public class InterviewService {
 
         Specification<Interview> spec = userScope(userId);
         if (status.isPresent()) spec = spec.and((root, q, cb) -> cb.equal(root.get("status"), status.get()));
-        if (companyId.isPresent()) spec = spec.and((root, q, cb) -> cb.equal(root.get("companyId"), companyId.get()));
+        if (companyId.isPresent()) spec = spec.and((root, q, cb) -> cb.equal(root.get("companyId"), companyId.get().toString()));
         if (from.isPresent() && to.isPresent()) {
             spec = spec.and((root, q, cb) -> cb.between(root.get("scheduledDate"), from.get(), to.get()));
         } else if (from.isPresent()) {
@@ -74,11 +81,11 @@ public class InterviewService {
             spec = spec.and((root, q, cb) -> cb.lessThanOrEqualTo(root.get("scheduledDate"), to.get()));
         }
 
-        return interviewRepository.findAll(spec, pageable).map(this::toResponse);
+        return interviewRepository.findAll(spec, pageable).map(i -> toResponse(i, userEmail));
     }
 
     @Transactional
-    public InterviewResponse update(String userId, String id, UpdateInterviewRequest req) {
+    public InterviewResponse update(String userId, String userEmail, String id, UpdateInterviewRequest req) {
         Interview interview = interviewRepository.findByIdAndUserId(id, userId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Interview not found"));
 
@@ -89,7 +96,7 @@ public class InterviewService {
         if (req.feedback() != null) interview.setFeedback(req.feedback());
 
         Interview saved = interviewRepository.save(interview);
-        return toResponse(saved);
+        return toResponse(saved, userEmail);
     }
 
     @Transactional
@@ -103,11 +110,25 @@ public class InterviewService {
         return (root, q, cb) -> cb.equal(root.get("userId"), userId);
     }
 
-    private InterviewResponse toResponse(Interview i) {
+    private InterviewResponse toResponse(Interview i, String userEmail) {
+        String companyName = null;
+        if (i.getCompanyId() != null) {
+            companyName = companyRepository.findById(i.getCompanyId())
+                    .map(Company::getName)
+                    .orElse(i.getCompanyId());
+        }
+        String userName = null;
+        if (i.getUserId() != null) {
+            userName = userRepository.findById(i.getUserId())
+                    .map(User::getName)
+                    .orElse(userEmail); // fallback to principal email
+        }
         return new InterviewResponse(
                 i.getId(),
                 i.getUserId(),
+                userName,
                 i.getCompanyId(),
+                companyName,
                 i.getDescription(),
                 i.getScheduledDate(),
                 i.getStatus(),

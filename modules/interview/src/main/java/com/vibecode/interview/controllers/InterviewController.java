@@ -26,23 +26,19 @@ public class InterviewController {
 
     private final InterviewService interviewService;
 
-    // Changed from @PostMapping("/") to @PostMapping
-    // This will handle POST /interviews (without trailing slash)
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     public InterviewResponse create(@AuthenticationPrincipal UserPrincipal principal,
                                     @RequestBody CreateInterviewRequest request) {
-        System.out.println(principal.getId());
-        return interviewService.create(principal.getId(), request);
+        return interviewService.create(principal.getId(), principal.getEmail(), request);
     }
 
     @GetMapping("/{id}")
     public InterviewResponse getById(@AuthenticationPrincipal UserPrincipal principal,
                                      @PathVariable String id) {
-        return interviewService.getById(principal.getId(), id);
+        return interviewService.getById(principal.getId(), principal.getEmail(), id);
     }
 
-    // This already works correctly - handles GET /interviews
     @GetMapping
     public Page<InterviewResponse> list(@AuthenticationPrincipal UserPrincipal principal,
                                         @RequestParam Optional<InterviewStatus> status,
@@ -53,14 +49,14 @@ public class InterviewController {
                                         @RequestParam(defaultValue = "20") int size,
                                         @RequestParam Optional<String> sortBy,
                                         @RequestParam Optional<Sort.Direction> direction) {
-        return interviewService.list(principal.getId(), status, companyId, from, to, page, size, sortBy, direction);
+        return interviewService.list(principal.getId(), principal.getEmail(), status, companyId, from, to, page, size, sortBy, direction);
     }
 
     @PatchMapping("/{id}")
     public InterviewResponse update(@AuthenticationPrincipal UserPrincipal principal,
                                     @PathVariable String id,
                                     @Valid @RequestBody UpdateInterviewRequest request) {
-        return interviewService.update(principal.getId(), id, request);
+        return interviewService.update(principal.getId(), principal.getEmail(), id, request);
     }
 
     @DeleteMapping("/{id}")
