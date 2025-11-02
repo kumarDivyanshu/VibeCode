@@ -121,6 +121,14 @@ public class SubmissionService {
                 .stream().map(this::toResponse).collect(Collectors.toList());
     }
 
+    // NEW: list submissions for a given user and question
+    public List<SubmissionResponse> listUserSubmissionsForQuestion(String userId, String questionId) {
+        return submissionRepository.findByUserIdAndQuestionIdOrderBySubmissionTimeDesc(userId, questionId)
+                .stream()
+                .map(this::toResponse)
+                .collect(Collectors.toList());
+    }
+
     public List<SubmissionResultResponse> getSubmissionResults(String submissionId) {
         if (!submissionRepository.existsById(submissionId)) {
             throw new NotFoundException("Submission not found");
@@ -270,6 +278,7 @@ public class SubmissionService {
                 .memoryUsed(s.getMemoryUsed())
                 .score(s.getScore())
                 .submissionTime(s.getSubmissionTime())
+                .sourceCode(s.getSourceCode())
                 .build();
     }
 }

@@ -12,7 +12,6 @@ import com.vibecode.aihelper.repositories.AiChatHistoryRepository;
 import com.vibecode.aihelper.repositories.AiChatSessionRepository;
 import com.vibecode.aihelper.repositories.QuestionRepository;
 import lombok.extern.slf4j.Slf4j;
-import lombok.RequiredArgsConstructor;
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.chat.messages.Message;
 import org.springframework.ai.chat.messages.UserMessage;
@@ -27,10 +26,13 @@ import java.nio.file.AccessDeniedException;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Collections;
-import java.util.ArrayList;
 import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
+
+// Added imports for robust JSON extraction
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 @Service
 @Slf4j
@@ -162,13 +164,18 @@ public class AiHelperService {
                     """.formatted(aiChatRequest.code(), aiChatRequest.query())
             );
 
+            // Build the prompt without model-specific JSON response options; rely on prompt rules and safe parsing
             Prompt prompt = new Prompt(List.of(systemMessage, userMessage));
 
-        // Send request to LLM
-            AiChatDtos.ChatQueryResponse chatQueryResponse = this.chatClient
+        // Send request to LLM and handle possibly unstructured content safely
+            String rawContent = this.chatClient
                     .prompt(prompt)
                     .call()
-                    .entity(AiChatDtos.ChatQueryResponse.class);
+                    .content();
+
+            String answer = extractAnswerSafely(rawContent);
+
+            AiChatDtos.ChatQueryResponse chatQueryResponse = new AiChatDtos.ChatQueryResponse(answer);
 
         // Store LLM response to database
             AiChatHistory responseChat = AiChatHistory.builder()
@@ -183,7 +190,7 @@ public class AiHelperService {
         } catch (AccessDeniedException | ResourceNotFoundException e) {
             throw e;
         } catch (Exception e) {
-                e.printStackTrace();
+            e.printStackTrace();
             throw new ServiceLogicException(e.getMessage());
         }
 
@@ -217,5 +224,42 @@ public class AiHelperService {
         } catch (Exception e) {
             throw new ServiceLogicException(e.getMessage());
         }
+    }
+
+    // --- Helpers ---
+    private static final ObjectMapper MAPPER = new ObjectMapper();
+
+    /**
+     * Tries to extract the "answer" field from a JSON object if present; otherwise returns the raw text.
+     * Also strips common code fences like ```json ... ```.
+     */
+    private static String extractAnswerSafely(String raw) {
+        if (raw == null || raw.isEmpty()) {
+            return "";
+        }
+        String cleaned = stripCodeFences(raw).trim();
+        // Try to locate a JSON object within the content
+        int start = cleaned.indexOf('{');
+        int end = cleaned.lastIndexOf('}');
+        if (start >= 0 && end > start) {
+            String json = cleaned.substring(start, end + 1);
+            try {
+                JsonNode node = MAPPER.readTree(json);
+                JsonNode ans = node.get("answer");
+                if (ans != null && !ans.isNull()) {
+                    return ans.asText();
+                }
+            } catch (Exception ignore) {
+                // fall through to return cleaned text
+            }
+        }
+        return cleaned;
+    }
+
+    private static String stripCodeFences(String s) {
+        // Remove common markdown code fences
+        String withoutFences = s.replaceAll("(?s)```+\\w*\\s*", "");
+        withoutFences = withoutFences.replace("```", "");
+        return withoutFences;
     }
 }

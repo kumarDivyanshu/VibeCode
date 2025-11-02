@@ -17,4 +17,7 @@ public interface InterviewRepository extends JpaRepository<Interview, String>, J
     Page<Interview> findByUserIdAndScheduledDateBetween(String userId, LocalDateTime start, LocalDateTime end, Pageable pageable);
 
     Optional<Interview> findByIdAndUserId(String id, String userId);
+
+    // New: count total interviews for a given company
+    long countByCompanyId(String companyId);
 }

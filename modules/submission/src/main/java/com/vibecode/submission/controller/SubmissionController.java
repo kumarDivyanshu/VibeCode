@@ -56,6 +56,13 @@ public class SubmissionController {
         return ResponseEntity.ok(submissionService.listUserSubmissions(userId));
     }
 
+    // NEW: list submissions for a user and a question
+    @GetMapping("/user/{userId}/question/{questionId}")
+    public ResponseEntity<List<SubmissionResponse>> listForUserAndQuestion(@PathVariable String userId,
+                                                                           @PathVariable String questionId){
+        return ResponseEntity.ok(submissionService.listUserSubmissionsForQuestion(userId, questionId));
+    }
+
     // Judge0 callback endpoint (callback_url points here with query params)
     @PostMapping("/callback")
     public ResponseEntity<Void> judgeCallback(@RequestParam String submissionId,

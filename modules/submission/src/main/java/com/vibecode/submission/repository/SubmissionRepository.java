@@ -7,5 +7,7 @@ import java.util.List;
 
 public interface SubmissionRepository extends JpaRepository<Submission, String> {
     List<Submission> findByUserIdOrderBySubmissionTimeDesc(String userId);
-}
 
+    // New: fetch submissions for a user and a question
+    List<Submission> findByUserIdAndQuestionIdOrderBySubmissionTimeDesc(String userId, String questionId);
+}

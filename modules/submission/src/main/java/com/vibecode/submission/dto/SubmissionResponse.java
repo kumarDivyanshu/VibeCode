@@ -22,5 +22,6 @@ public class SubmissionResponse {
     private BigDecimal memoryUsed;
     private int score;
     private Instant submissionTime;
+    // New: include submitted source code in the response
+    private String sourceCode;
 }
-

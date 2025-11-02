@@ -7,6 +7,8 @@ import org.springframework.cloud.gateway.route.RouteLocator;
 import org.springframework.cloud.gateway.route.builder.RouteLocatorBuilder;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.HttpStatus;
 
 @Configuration
 public class GatewayConfig {
@@ -20,6 +22,22 @@ public class GatewayConfig {
     @Bean
     public RouteLocator customRouteLocator(RouteLocatorBuilder builder) {
         return builder.routes()
+                // Handle CORS preflight globally - short-circuit with 200 OK
+                .route("cors-preflight", r -> r.method(HttpMethod.OPTIONS).and().path("/**")
+                        .filters(f -> f
+                                .setResponseHeader("Access-Control-Allow-Origin", "http://localhost:3000")
+                                .setResponseHeader("Access-Control-Allow-Methods", "GET,POST,PUT,PATCH,DELETE,OPTIONS")
+                                .setResponseHeader("Access-Control-Allow-Headers", "Authorization,Content-Type,X-Requested-With,Accept,Origin,X-User-Id,X-Username,X-User-Roles")
+                                .setResponseHeader("Access-Control-Allow-Credentials", "true")
+                                .setStatus(HttpStatus.OK))
+                        .uri("no://op"))
+
+                // Public read access for interviews - GET only, no auth filter
+                .route("interview-service-public", r -> r.method(HttpMethod.GET).and().path("/interviews/**")
+                        .filters(f -> f
+                                .filter(rateLimitFilter.apply(new RateLimitFilter.Config())))
+                        .uri("http://localhost:8082"))
+
                 // Auth service routes - no authentication required but with rate limiting
                 .route("auth-login", r -> r.path("/auth/login")
                         .filters(f -> f.filter(rateLimitFilter.apply(new RateLimitFilter.Config())))
@@ -40,8 +58,7 @@ public class GatewayConfig {
                                 .filter(rateLimitFilter.apply(new RateLimitFilter.Config())))
                         .uri("http://localhost:8081"))
 
-                // Interview service routes - all protected
-                // Changed from /interview/** to /interviews/** to match your controller
+                // Interview service routes - all protected for non-GET
                 .route("interview-service", r -> r.path("/interviews/**")
                         .filters(f -> f
                                 .filter(authenticationFilter.apply(new AuthenticationFilter.Config()))
@@ -56,16 +73,19 @@ public class GatewayConfig {
                                 .rewritePath("/interview/(?<path>.*)", "/interviews/${path}"))
                         .uri("http://localhost:8082"))
 
-                // Interview service routes - all protected
-                // Changed from /question/** to /questions/** to match your controller
+                // Coding service routes
                 .route("questions-service", r -> r.path("/questions/**")
                         .filters(f -> f
                                 .filter(authenticationFilter.apply(new AuthenticationFilter.Config()))
                                 .filter(rateLimitFilter.apply(new RateLimitFilter.Config())))
                         .uri("http://localhost:8083"))
-
-                // Testcases routes /questions/** to match your controller
                 .route("testcases-service", r -> r.path("/testcases/**")
+                        .filters(f -> f
+                                .filter(authenticationFilter.apply(new AuthenticationFilter.Config()))
+                                .filter(rateLimitFilter.apply(new RateLimitFilter.Config())))
+                        .uri("http://localhost:8083"))
+                // NEW: Sheets routes to coding service
+                .route("sheets-service", r -> r.path("/sheets/**")
                         .filters(f -> f
                                 .filter(authenticationFilter.apply(new AuthenticationFilter.Config()))
                                 .filter(rateLimitFilter.apply(new RateLimitFilter.Config())))
